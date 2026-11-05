@@ -91,25 +91,71 @@ export PATH="$PATH:/Users/jcreid/.lmstudio/bin"
 export ANTHROPIC_BASE_URL="http://localhost:1234"
 export ANTHROPIC_AUTH_TOKEN="lmstudio"
 export ANTHROPIC_API_KEY="lmstudio"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen3.6-35b-a3b"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen3.6-35b-a3b"
+export CLAUDE_MODEL="qwen3.6-35b-a3b"
+export CLAUDE_CODE_MAX_CONTEXT_TOKENS=32768
 
-# github copilot setup for LM studio
-#export COPILOT_OFFLINE=true
-#export COPILOT_PROVIDER_TYPE=openai
-#export COPILOT_PROVIDER_BASE_URL="http://localhost:1234/v1"
-#export COPILOT_PROVIDER_BEARER_TOKEN="lm-studio"
-#export COPILOT_PREFERRED_MODEL="qwen3.6-35b-a3b"
-#export COPILOT_MODEL="qwen3.6-35b-a3b"
-#export COPILOT_PROVIDERS_CONFIG="$HOME/.copilot/providers.json"
-#export COPILOT_GITHUB_TOKEN="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"
 #export GH_TOKEN="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"
 
 
 ##### comman aliases
 alias ghcp="copilot --model lmstudio/qwen-local"
-alias cc="claude --model qwen3.6-35b-a3b --dangerously-skip-permissions"
+alias cc="claude --dangerously-skip-permissions"
+
+# ==============================================================================
+# BMAD LOCAL ENVIRONMENT WORKSPACE CORE (LM STUDIO + INTELLIJ + CLAUDE CODE)
+# ==============================================================================
+alias bmad-up='() {
+    echo " Initializing local BMAD Agent Environment..."
+    
+    # 1. Verify LM Studio local server is active
+    if ! nc -z localhost 1234 >/dev/null 2>&1; then
+        echo " Error: LM Studio server is not running on port 1234."
+        echo " Please open LM Studio, start the Local Server, and try again."
+        return 1
+    fi
+    echo " LM Studio Server detected on port 1234."
+
+    # 2. Verify IntelliJ IDEA Built-in REST API is responsive for the /ide hook
+    local ij_port=63342
+    if ! nc -z localhost $ij_port >/dev/null 2>&1; then
+        echo "  Warning: IntelliJ Built-in Server not detected on port $ij_port."
+        echo " Ensure IntelliJ is open and Settings -> Build, Execution, Deployment -> Debugger -> Built-in server port is set to 63342."
+        return 1
+    else
+        echo " IntelliJ IDE Sync Server detected on port $ij_port."
+    fi
+
+    # 3. Configure Local Anthropic Proxy Redirects
+    export ANTHROPIC_BASE_URL="http://localhost:1234"
+    export ANTHROPIC_AUTH_TOKEN="lmstudio"
+    export ANTHROPIC_API_KEY="lmstudio" # Bypasses CLI validation loop
+    
+    # 4. Explicit IDE Integration Flags for Claude Code
+    export CLAUDE_IDE_PORT=$ij_port
+    export CLAUDE_IDE_TYPE="intellij"
+    
+    # 5. Optimize Context & Default Model Targets for your 64GB M5 Pro Mac
+    export CLAUDE_CODE_MAX_CONTEXT_TOKENS=65536
+    export CLAUDE_MODEL="qwen3.6-35b-a3b"
+    export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen3.6-35b-a3b"
+    export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen3.6-35b-a3b"
+    
+    echo " Engine configured to 64k tokens for model: $CLAUDE_MODEL"
+    echo " Booting Claude Code CLI with local IntelliJ bridge..."
+    
+    # 6. Execute with immediate IDE flag attachment
+    claude /ide
+}'
+# ==============================================================================
+
+
 
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 . "$HOME/.local/bin/env"
+
+

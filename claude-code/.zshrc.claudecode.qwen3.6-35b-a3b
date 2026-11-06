@@ -94,7 +94,7 @@ export ANTHROPIC_API_KEY="lmstudio"
 export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen3.6-35b-a3b"
 export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen3.6-35b-a3b"
 export CLAUDE_MODEL="qwen3.6-35b-a3b"
-export CLAUDE_CODE_MAX_CONTEXT_TOKENS=32768
+export CLAUDE_CODE_MAX_CONTEXT_TOKENS=262144
 
 #export GH_TOKEN="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"
 
@@ -102,6 +102,7 @@ export CLAUDE_CODE_MAX_CONTEXT_TOKENS=32768
 ##### comman aliases
 alias ghcp="copilot --model lmstudio/qwen-local"
 alias cc="claude --dangerously-skip-permissions"
+alias idea='open -na "Intellij IDEA.app" --args'
 
 # ==============================================================================
 # BMAD LOCAL ENVIRONMENT WORKSPACE CORE (LM STUDIO + INTELLIJ + CLAUDE CODE)
@@ -147,6 +148,36 @@ alias bmad-up='() {
     
     # 6. Execute with immediate IDE flag attachment
     claude /ide
+}'
+
+alias p4m='() {
+    echo " Initializing devel env for Plated4Me..."
+
+    # start the LM Studio app with model and context settings
+    lms daemon up
+    lms load ${CLAUDE_MODEL} --gpu=max --context-length=${CLAUDE_CODE_MAX_CONTEXT_TOKENS}
+    lms server start --port 1234
+
+    # set the working project directory
+    cd /Users/jcreid/Documents/SW_DEV/Projects/Plated4Me
+
+    # start up the IntelliJ IDE
+    idea . 
+    
+    # starting after IntelliJ loads so terminal wont hang
+    #lms log stream
+    lms log stream --source server
+}'
+
+alias lmd='() {
+
+    # graceful shutdown of LM Studio
+    lms server stop
+    lms unload --all
+    pkill -f "LM Studio"
+    lms daemon down
+
+
 }'
 # ==============================================================================
 
